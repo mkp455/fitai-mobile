@@ -13,10 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
       - name: Install system dependencies
         run: |
@@ -37,11 +37,14 @@ jobs:
             cmake \
             libffi-dev \
             libssl-dev \
-            python3-pip
+            python3-pip \
+            ccache
 
       - name: Install Python dependencies
         run: |
-          pip install buildozer cython==0.29.33
+          pip install --upgrade pip
+          pip install buildozer==1.5.0
+          pip install cython==0.29.33
 
       - name: Create buildozer.spec
         run: |
@@ -53,20 +56,26 @@ jobs:
           source.dir = .
           source.include_exts = py,png,jpg,kv,atlas
           version = 1.0
-          requirements = python3,kivy==2.3.0,numpy
+          requirements = python3,kivy==2.2.1,numpy
           orientation = portrait
           fullscreen = 0
           android.archs = arm64-v8a
           android.permissions = WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
-          android.api = 33
+          android.api = 31
           android.minapi = 21
           android.ndk = 25b
-          android.sdk = 33
+          android.sdk = 31
+          android.accept_sdk_license = True
 
           [buildozer]
           log_level = 2
           warn_on_root = 1
           EOF
+
+      - name: Set up Android SDK licenses
+        run: |
+          export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Build APK
         run: |
